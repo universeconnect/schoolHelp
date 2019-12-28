@@ -1,0 +1,9 @@
+<!--pages/components/mesgBox/mesgBox.wxml-->
+<view class="mesgBox" style="display:{{hidemesgBox}}">
+    <text class="author">{{author}}</text> <text >发布时间</text><text >赏金</text>
+    <view ></view>
+    <view class="content">
+    {{content}}
+    </view>
+    <button bindtap="receiving">接单</button>
+</view>
