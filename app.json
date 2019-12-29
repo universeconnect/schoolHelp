@@ -1,10 +1,11 @@
 {
   "pages": [
-    "pages/index/index", 
+    "pages/index/index",
     "pages/personer/person",
     "pages/coachHelp/coachHelp",
     "pages/strategyHelp/strategyHelp",
-    "pages/storeHelp/storeHelp"
+    "pages/storeHelp/storeHelp",
+    "pages/postMessage/postMessage"
   ],
   "permission": {
     "scope.userLocation": {

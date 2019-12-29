@@ -22,6 +22,12 @@ Component({
   methods: {
     receiving(){
       console.log("接单")
-    }
+    },
+    closeMesgBox(){
+      this.setData({
+        hidemesgBox:'none'
+      })
+      return 'none'
+    },
   }
 })

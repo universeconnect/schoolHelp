@@ -17,3 +17,8 @@
     border-top: rgb(156, 253, 253) 1px solid;
    
 }
+.close{
+    position: absolute;
+    right: 4px;
+    top: 4px;
+}

@@ -1,14 +1,15 @@
 //index.js
 //获取应用实例
-
 const app = getApp()
+var QQMapWX = require('../../utils/qqmap-wx-jssdk.min.js');
+var qqmapsdk;
 let location = require('location')
 let countLocation = require('countLocation')
 Page({
   data: {
     centerX: '',
     centerY: '',
-    scale: 16, //默认缩放比例
+    scale: 15, //默认缩放比例
     uScale:'', //用户缩放比例
     speed: '',
     accuracy: '',
@@ -21,10 +22,18 @@ Page({
     openCoverView: '',
     covShow: 'block', //是否显示个人中心
     items: [1, 2, 3, 4, 5],
-    markers: []
+    markers: [],
+    address:'',
+    onclicked1:'',
+    onclicked2:'',
+    onclicked3:'',
+    onclicked4:''
   },
 
   onLoad: function () {
+    qqmapsdk = new QQMapWX({
+      key: '6WDBZ-7Z6KG-6PPQC-IKZ7N-6IUTS-QPBCQ' //这里自己的key秘钥进行填充
+    });
     let that = this;
     wx.getLocation({
       type: 'gcj02', //返回可以用于wx.openLocation的经纬度
@@ -52,8 +61,114 @@ Page({
 
 
   onReady:function(){
-    
+    this.setData({
+      onclicked1:'onclicked'
+    })
   },
+
+  onShow: function () {
+    let vm = this;
+    vm.getUserLocation();
+  },
+
+  getUserLocation: function () {
+    let vm = this;
+    wx.getSetting({
+      success: (res) => {
+        console.log(JSON.stringify(res))
+        // res.authSetting['scope.userLocation'] == undefined    表示 初始化进入该页面
+        // res.authSetting['scope.userLocation'] == false    表示 非初始化进入该页面,且未授权
+        // res.authSetting['scope.userLocation'] == true    表示 地理位置授权
+        if (res.authSetting['scope.userLocation'] != undefined && res.authSetting['scope.userLocation'] != true) {
+          wx.showModal({
+            title: '请求授权当前位置',
+            content: '需要获取您的地理位置，请确认授权',
+            success: function (res) {
+              if (res.cancel) {
+                wx.showToast({
+                  title: '拒绝授权',
+                  icon: 'none',
+                  duration: 1000
+                })
+              } else if (res.confirm) {
+                wx.openSetting({
+                  success: function (dataAu) {
+                    if (dataAu.authSetting["scope.userLocation"] == true) {
+                      wx.showToast({
+                        title: '授权成功',
+                        icon: 'success',
+                        duration: 1000
+                      })
+                      //再次授权，调用wx.getLocation的API
+                      vm.getLocation();
+                    } else {
+                      wx.showToast({
+                        title: '授权失败',
+                        icon: 'none',
+                        duration: 1000
+                      })
+                    }
+                  }
+                })
+              }
+            }
+          })
+        } else if (res.authSetting['scope.userLocation'] == undefined) {
+          //调用wx.getLocation的API
+          vm.getLocation();
+        }
+        else {
+          //调用wx.getLocation的API
+          vm.getLocation();
+        }
+      }
+    })
+  },
+  // 微信获得经纬度
+  getLocation: function () {
+    let vm = this;
+    wx.getLocation({
+      type: 'wgs84',
+      success: function (res) {
+        console.log(res)
+        var latitude = res.latitude
+        var longitude = res.longitude
+        var speed = res.speed
+        var accuracy = res.accuracy;
+        vm.getLocal(latitude, longitude)
+      },
+      fail: function (res) {
+        console.log('fail' + JSON.stringify(res))
+      }
+    })
+  },
+  // 获取当前地理位置
+  getLocal: function (latitude, longitude) {
+    let vm = this;
+    qqmapsdk.reverseGeocoder({
+      location: {
+        latitude: latitude,
+        longitude: longitude
+      },
+      success: function (res) {
+        console.log(res);
+        let address = res.result.formatted_addresses.recommend
+        vm.setData({
+          address:address
+        })
+ 
+      },
+      fail: function (res) {
+        console.log(res);
+      },
+      complete: function (res) {
+      }
+    });
+  },
+
+  //点击信息盒子关闭按钮
+  
+
 
   //地图缩放时事件
   regionchange(e) {
@@ -65,7 +180,7 @@ Page({
           uScale:e.scale
         })
         console.log(e.scale)
-        if(e.scale<14){   //缩放比例小于14
+        if(e.scale<13){   //缩放比例小于14
           that.setData({
             markers:that.getCountMarkers()    //显示统计标记点数
           })
@@ -80,6 +195,44 @@ Page({
    
   },
 
+  //点击导航栏
+  HelpNavBtn(e){
+    let onclicked="onclicked";
+    let noClick = "";
+    let id = e.target.id;
+    console.log(id)
+    if(id == "tap1"){
+      
+      this.setData({
+        onclicked1:onclicked, 
+        onclicked2:noClick, 
+        onclicked3:noClick, 
+        onclicked4:noClick, 
+      })
+    }else if(id == "tap2"){
+      this.setData({
+        onclicked1:noClick, 
+        onclicked2:onclicked, 
+        onclicked3:noClick, 
+        onclicked4:noClick, 
+      })
+    }else if(id == "tap3"){
+      this.setData({
+        onclicked1:noClick, 
+        onclicked2:noClick, 
+        onclicked3:onclicked, 
+        onclicked4:noClick, 
+      })
+    }else if(id == "tap4"){
+      this.setData({
+        onclicked1:noClick, 
+        onclicked2:noClick, 
+        onclicked3:noClick, 
+        onclicked4:onclicked, 
+      })
+    }
+      
+  },
   /**
    * 点击标识点触发 */
   markertap(e) {
@@ -111,7 +264,6 @@ Page({
       },
       
     })
-   
   },
 
   /**
@@ -149,7 +301,7 @@ Page({
 
 
   /**
-   * 移动到自己位置
+   * 移动到自己位置,返回第地图
    */
   moveToLocation: function () {
     let mpCtx = wx.createMapContext("index-map");
@@ -180,12 +332,12 @@ Page({
         bgColor = "#000000"; break;
     }
     let marker = {
-      iconPath: "../../images/cr2.png",
+      iconPath: "../../images/po1.png",
       id: point.id || 0,
       title: point.title || '',
       latitude: latitude,
       longitude:longitude,
-      width: 30,
+      width: 50,
       height: 50,
       label: {
         content: point.content,
@@ -256,7 +408,8 @@ Page({
   vtouchmoveFun: function () {
     this.setData({
       toBottom: "20%",
-      covShow: 'none'
+      covShow: 'none',
+
     })
   },
 
@@ -280,5 +433,6 @@ Page({
   //搜索
   searchHelp:function(){
       //输入时
+      
   }
 })
