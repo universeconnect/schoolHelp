@@ -1,4 +1,0 @@
-/* pages/postMessage/postMessage.wxss */
-.box{
-    height: 100%;
-}
